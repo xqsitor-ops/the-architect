@@ -1,0 +1,25 @@
+{
+  "name": "the-architect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Architect — Sovereign Codex app for Ray-Anthony Eddie / Xqsitor",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "gen:vapid": "node scripts/gen-vapid.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@supabase/supabase-js": "^2.108.1",
+    "@upstash/redis": "^1.34.3",
+    "googleapis": "^144.0.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "vercel": "^39.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

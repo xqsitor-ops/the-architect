@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#faf8f5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="The Architect">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>The Architect — Sovereign Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #faf8f5;
+    --bg2:    #f4f0ea;
+    --bg3:    #ede8e0;
+    --border: #e2dbd0;
+    --border2:#d4ccbf;
+    --ink:    #1a1714;
+    --ink2:   #3d3830;
+    --ink3:   #7a7268;
+    --ink4:   #b0a898;
+    --ink5:   #cec6ba;
+    --terra:  #c4714a;
+    --terra2: #9e5234;
+    --terra3: #f0e0d6;
+    --terra4: #faf3ef;
+    --teal:   #2a9d8f;
+    --purple: #7b68ee;
+    /* Legacy aliases — keep inline HTML styles working */
+    --gold: var(--terra); --gold-pale: var(--terra4); --gold-dim: var(--terra3);
+    --chrome: var(--ink3); --chrome-pale: var(--bg2); --chrome-dim: var(--ink5);
+    --white: var(--bg); --white-dim: var(--ink2); --white-muted: var(--ink4);
+    --coral: var(--terra); --amber: var(--terra);
+    --black: var(--ink); --black-2: var(--bg); --black-3: var(--bg2);
+    --black-4: var(--bg3); --black-5: var(--border);
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: var(--bg); }
+  body {
+    font-family: var(--font-body); background: var(--bg); color: var(--ink2);
+    min-height: 100vh; min-height: 100dvh; overflow-x: hidden; font-weight: 300;
+  }
+
+  .app-shell { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+  /* ── Masthead ── */
+  .top-bar {
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: calc(var(--safe-top) + 10px) 16px 10px;
+    display: flex; align-items: center; gap: 10px;
+    position: sticky; top: 0; z-index: 100; flex-shrink: 0;
+  }
+  .top-bar .mark {
+    width: 28px; height: 28px; border: 1px solid var(--terra3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 14px; color: var(--terra); flex-shrink: 0;
+  }
+  .top-bar .title {
+    font-family: var(--font-display); font-size: 17px; font-weight: 600;
+    color: var(--ink); flex: 1; letter-spacing: 0;
+  }
+  .top-bar .subtitle { font-size: 10px; color: var(--ink4); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+  .top-bar .settings-btn {
+    background: none; border: 1px solid var(--border); border-radius: 0;
+    width: 32px; height: 32px; color: var(--ink4); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .top-bar .settings-btn svg { width: 16px; height: 16px; }
+
+  .content-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+
+  /* ── Tab bar ── */
+  .bottom-nav {
+    background: var(--bg); border-top: 1px solid var(--border);
+    display: flex; padding-bottom: var(--safe-bottom); flex-shrink: 0;
+    position: sticky; bottom: 0; z-index: 100;
+  }
+  .nav-tab {
+    flex: 1; padding: 10px 2px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; border: none; background: none;
+    color: var(--ink4); font-size: 9px; font-family: var(--font-body);
+    letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500;
+    transition: color 0.15s; position: relative;
+  }
+  .nav-tab.active { color: var(--terra); }
+  .nav-tab.active::before {
+    content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 2px; background: var(--terra);
+  }
+  .nav-tab svg { width: 20px; height: 20px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Screen headers ── */
+  .screen-header { padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
+  .screen-header h1 {
+    font-family: var(--font-display); font-size: 34px; font-weight: 600;
+    color: var(--ink); line-height: 1.15; margin-bottom: 6px; letter-spacing: -0.01em;
+  }
+  .screen-header p { font-size: 14px; color: var(--ink3); line-height: 1.7; font-weight: 300; }
+
+  /* ── Section labels ── */
+  .section-label {
+    font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.22em;
+    color: var(--ink4); padding: 20px 20px 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before { content: ''; width: 16px; height: 1px; background: var(--terra); flex-shrink: 0; }
+  .section-label::after  { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── Cards ── */
+  .card-list { padding: 0; display: flex; flex-direction: column; }
+  .card {
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; cursor: pointer;
+    transition: background 0.12s; -webkit-user-select: none; user-select: none; border-radius: 0;
+  }
+  .card:active { background: var(--terra4); }
+  .card.gold-accent   { border-left: 2px solid var(--terra); }
+  .card.teal-accent   { border-left: 2px solid var(--terra); }
+  .card.purple-accent { border-left: 2px solid var(--terra); }
+  .card.coral-accent  { border-left: 2px solid var(--terra); }
+  .card.chrome-accent { border-left: 2px solid var(--terra); }
+  .card-eyebrow { font-size: 9px; color: var(--terra); text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 4px; font-weight: 500; }
+  .card-title {
+    font-family: var(--font-display); font-size: 20px; font-weight: 600;
+    color: var(--ink); margin-bottom: 3px; line-height: 1.2; letter-spacing: -0.01em;
+  }
+  .card-sub { font-size: 13px; color: var(--ink3); line-height: 1.5; font-weight: 300; }
+  .card-row { display: flex; align-items: flex-start; gap: 12px; }
+  .card-icon {
+    width: 36px; height: 36px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0; background: var(--bg2);
+  }
+  .card-body { flex: 1; }
+
+  /* ── Detail view ── */
+  .detail-view { display: none; }
+  .detail-view.active { display: block; }
+  .detail-back {
+    padding: 14px 20px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border); cursor: pointer; background: none;
+    border-left: none; border-right: none; border-top: none;
+    width: 100%; text-align: left; color: var(--terra); font-size: 13px; font-family: var(--font-body);
+  }
+  .detail-content { padding: 24px 20px 48px; }
+  .detail-eyebrow {
+    font-size: 9px; color: var(--ink4); text-transform: uppercase;
+    letter-spacing: 0.22em; margin-bottom: 10px; font-weight: 500;
+  }
+  .detail-title {
+    font-family: var(--font-display); font-size: 38px; font-weight: 600;
+    color: var(--ink); line-height: 1.1; margin-bottom: 8px; letter-spacing: -0.01em;
+  }
+  .detail-tradition {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--bg2); color: var(--ink3); border: 1px solid var(--border2);
+    font-size: 10px; padding: 4px 10px; margin-bottom: 20px;
+    font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .detail-body { font-size: 16px; color: var(--ink2); line-height: 1.85; font-weight: 300; }
+  .detail-body p { margin-bottom: 18px; }
+  .detail-body h3 {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.22em;
+    color: var(--terra); margin-bottom: 10px; margin-top: 28px; font-weight: 500;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .detail-body h3::before { content: ''; width: 12px; height: 1px; background: var(--terra); flex-shrink: 0; }
+  .detail-body h3::after  { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .detail-body strong { color: var(--ink); font-weight: 500; }
+  .detail-body em { color: var(--ink3); font-style: italic; }
+  .detail-body .tool-diagnostic {
+    border-left: 2px solid var(--terra); padding: 14px 18px;
+    margin: 14px 0 18px; background: var(--terra4);
+  }
+  .detail-body .tool-diagnostic p { font-size: 14px; margin-bottom: 10px; }
+  .detail-body .tool-diagnostic p:last-child { margin-bottom: 0; }
+  .card.hero-card { border-left: 2px solid var(--terra); background: var(--terra4); }
+  .card.hero-card .card-title { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .declaration {
+    margin: 28px 0 0; background: var(--terra4);
+    border-top: 2px solid var(--terra); border-bottom: 1px solid var(--terra3);
+    padding: 18px 20px 20px;
+    font-family: var(--font-display); font-size: 20px; font-weight: 500;
+    font-style: italic; color: var(--ink); line-height: 1.5;
+  }
+  .declaration::before {
+    content: 'Declaration';
+    display: block; font-family: var(--font-body); font-style: normal;
+    font-size: 9px; font-weight: 500; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--terra); margin-bottom: 12px;
+  }
+  .anchor-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .anchor-pill {
+    font-size: 11px; padding: 5px 11px; border-radius: 0;
+    background: var(--bg2); color: var(--ink3); border: 1px solid var(--border2); font-weight: 400;
+  }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* ── Identity hero ── */
+  .identity-hero { padding: 32px 20px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+  .identity-seal {
+    width: 72px; height: 72px; border: 1px solid var(--terra3);
+    margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+    background: var(--terra4);
+  }
+  .identity-seal span { font-family: var(--font-display); font-size: 32px; color: var(--terra); font-weight: 600; }
+  .identity-hero h1 {
+    font-family: var(--font-display); font-size: 28px; font-weight: 600;
+    color: var(--ink); margin-bottom: 6px; letter-spacing: -0.01em;
+  }
+  .identity-hero p { font-size: 13px; color: var(--ink3); line-height: 1.7; font-weight: 300; }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  }
+  .stat-cell {
+    background: var(--bg); padding: 16px 8px; text-align: center;
+    cursor: pointer; transition: background 0.12s; border-right: 1px solid var(--border);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-cell:active { background: var(--bg3); }
+  .stat-val { font-family: var(--font-display); font-size: 26px; color: var(--terra); line-height: 1; margin-bottom: 4px; font-weight: 600; }
+  .stat-label { font-size: 9px; color: var(--ink4); text-transform: uppercase; letter-spacing: 0.12em; line-height: 1.3; font-weight: 500; }
+
+  /* ── Planet chip ── */
+  .planet-chip {
+    margin: 0 20px 4px; padding: 12px 16px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-left: 2px solid var(--terra);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .planet-chip-day {
+    font-family: var(--font-display); font-size: 28px;
+    color: var(--terra); font-weight: 600; flex-shrink: 0; line-height: 1;
+  }
+  .planet-chip-body { flex: 1; }
+  .planet-chip-title { font-size: 13px; color: var(--ink); font-weight: 500; margin-bottom: 2px; }
+  .planet-chip-note { font-size: 12px; color: var(--ink3); line-height: 1.5; font-weight: 300; }
+
+  /* ── Insight card ── */
+  .insight-card {
+    margin: 20px 20px 4px; padding: 18px 20px;
+    background: var(--bg2); border: 1px solid var(--border); position: relative;
+  }
+  .insight-eyebrow {
+    font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--terra); margin-bottom: 10px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .insight-eyebrow::before { content: ''; width: 12px; height: 1px; background: var(--terra); }
+  .insight-title {
+    font-family: var(--font-display); font-size: 22px; font-weight: 600;
+    color: var(--ink); margin-bottom: 8px; line-height: 1.3; letter-spacing: -0.01em;
+  }
+  .insight-body { font-size: 14px; color: var(--ink2); line-height: 1.75; font-weight: 300; }
+  .insight-body strong { color: var(--ink); font-weight: 500; }
+  .insight-events { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .insight-event { font-size: 13px; color: var(--ink3); padding: 4px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .insight-event-time { color: var(--terra); flex-shrink: 0; font-weight: 500; min-width: 56px; }
+  .insight-loading { font-size: 13px; color: var(--ink4); font-style: italic; }
+  .insight-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .insight-btn {
+    flex: 1; padding: 9px 12px; font-size: 12px; border-radius: 0;
+    background: var(--bg3); border: 1px solid var(--border2); color: var(--ink3);
+    cursor: pointer; font-family: var(--font-body); transition: background 0.12s; font-weight: 400;
+  }
+  .insight-btn:active { background: var(--bg3); }
+  .insight-btn.primary { background: var(--terra); border-color: var(--terra); color: var(--bg); }
+  .insight-btn.primary:active { background: var(--terra2); }
+
+  /* ── Calendar ── */
+  .cal-header { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .cal-month { flex: 1; text-align: center; font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--ink); }
+  .cal-nav-btn {
+    background: none; border: 1px solid var(--border); border-radius: 0;
+    color: var(--ink3); width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px;
+  }
+  .cal-grid-wrap { padding: 12px 12px 0; }
+  .cal-dow { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; margin-bottom: 3px; }
+  .cal-dow-cell { text-align: center; font-size: 9px; color: var(--ink4); text-transform: uppercase; padding: 2px 0; font-weight: 500; letter-spacing: 0.05em; }
+  .cal-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 0; background: var(--bg); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.12s; padding: 2px; position: relative;
+  }
+  .cal-day:active { background: var(--bg3); }
+  .cal-day.empty { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+  .cal-day.today { border-color: var(--ink3); }
+  .cal-day.power-8  { background: rgba(196,113,74,0.07); }
+  .cal-day.power-17 { background: rgba(42,157,143,0.07); }
+  .cal-day.power-26 { background: rgba(123,104,238,0.07); }
+  .cal-day.solar-return { background: rgba(196,113,74,0.13); box-shadow: inset 0 0 0 1px var(--terra); }
+  .cal-day.august { background: var(--bg2); border-color: var(--border2); }
+  .cal-day-num { font-family: var(--font-display); font-size: 14px; font-weight: 400; color: var(--ink2); line-height: 1; }
+  .cal-day.power-8 .cal-day-num  { color: var(--terra); font-weight: 600; }
+  .cal-day.power-17 .cal-day-num { color: var(--teal); font-weight: 600; }
+  .cal-day.power-26 .cal-day-num { color: var(--purple); font-weight: 600; }
+  .cal-day.solar-return .cal-day-num { color: var(--terra); font-weight: 600; }
+  .cal-day-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; }
+  .power-8 .cal-day-dot  { background: var(--terra); }
+  .power-17 .cal-day-dot { background: var(--teal); }
+  .power-26 .cal-day-dot { background: var(--purple); }
+  .solar-return .cal-day-dot { background: var(--terra); }
+  .cal-day-planet { font-size: 8px; color: var(--ink5); line-height: 1; margin-top: 1px; }
+  .cal-day-event-marker { position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink4); }
+  .cal-legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--ink4); }
+  .legend-dot { width: 8px; height: 8px; flex-shrink: 0; }
+
+  .day-detail-panel { margin: 16px 20px 20px; background: var(--bg2); border: 1px solid var(--border); padding: 18px; min-height: 100px; }
+  .day-detail-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 4px; letter-spacing: -0.01em; }
+  .day-detail-sub { font-size: 12px; color: var(--ink4); margin-bottom: 12px; }
+  .day-detail-body { font-size: 14px; color: var(--ink2); line-height: 1.75; font-weight: 300; }
+  .day-detail-body strong { color: var(--ink); font-weight: 500; }
+  .day-decl {
+    border-left: 2px solid var(--terra); padding: 10px 14px;
+    font-family: var(--font-display); font-size: 16px; font-style: italic; color: var(--ink);
+    margin-top: 12px; line-height: 1.6; background: var(--terra4);
+  }
+  .day-events { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .day-events-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink4); margin-bottom: 8px; font-weight: 500; }
+  .day-event { font-size: 13px; color: var(--ink3); padding: 4px 0; display: flex; gap: 8px; }
+  .day-event-time { color: var(--terra); min-width: 60px; font-weight: 500; }
+
+  /* ── Ritual ── */
+  .ritual-progress {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none; background: var(--bg2);
+  }
+  .ritual-progress::-webkit-scrollbar { display: none; }
+  .r-dot {
+    flex: 1; min-width: 40px; height: 44px; flex-shrink: 0;
+    border-right: 1px solid var(--border); background: var(--bg2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 16px; font-style: italic;
+    color: var(--ink5); cursor: pointer; transition: all 0.12s;
+  }
+  .r-dot:last-child { border-right: none; }
+  .r-dot.active { background: var(--bg); color: var(--terra); border-bottom: 2px solid var(--terra); }
+  .r-dot.done { color: var(--ink5); background: var(--bg2); }
+  .ritual-card { margin: 16px 20px; background: var(--bg2); border: 1px solid var(--border); overflow: hidden; }
+  .ritual-card-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 14px; }
+  .ritual-num {
+    width: 40px; height: 40px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 18px; font-style: italic;
+    background: var(--bg2) !important; border: 1px solid var(--border);
+    color: var(--terra) !important;
+  }
+  .ritual-card-title { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--ink); line-height: 1.2; margin-bottom: 3px; }
+  .ritual-card-sub { font-size: 12px; color: var(--ink3); line-height: 1.5; font-weight: 300; }
+  .ritual-card-body { padding: 18px 20px; font-size: 15px; color: var(--ink2); line-height: 1.85; font-weight: 300; }
+  .ritual-card-body strong { color: var(--ink); font-weight: 500; }
+  .ritual-decl { margin: 0 20px 4px; }
+  .ritual-nav { display: flex; gap: 10px; padding: 0 20px 20px; }
+  .ritual-nav button { flex: 1; padding: 12px; border-radius: 0; font-size: 13px; font-weight: 500; }
+  .ritual-nav .btn-prev { background: var(--bg); border: 1px solid var(--border2); color: var(--ink3); }
+  .ritual-nav .btn-next { background: var(--terra); border: 1px solid var(--terra); color: var(--bg); }
+  .ritual-duration { text-align: center; font-size: 11px; color: var(--ink4); padding: 0 20px 12px; }
+
+  /* ── Chat ── */
+  .chat-wrap { display: flex; flex-direction: column; height: calc(100dvh - 90px - var(--safe-top)); }
+  .chat-intro { padding: 24px 20px 10px; }
+  .chat-intro h1 { font-family: var(--font-display); font-size: 32px; font-weight: 600; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.01em; }
+  .chat-intro p { font-size: 13px; color: var(--ink3); line-height: 1.6; font-weight: 300; }
+  .chat-quick { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 20px 0; }
+  .chat-quick-btn {
+    font-size: 11px; padding: 6px 12px; border-radius: 0;
+    background: var(--bg2); border: 1px solid var(--border2); color: var(--ink3);
+    cursor: pointer; font-family: var(--font-body); font-weight: 400;
+  }
+  .chat-quick-btn:active { background: var(--bg3); }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px 16px 80px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msg { padding: 12px 16px; max-width: 88%; font-size: 15px; line-height: 1.65; word-wrap: break-word; font-weight: 300; }
+  .chat-msg.user { align-self: flex-end; background: var(--terra4); color: var(--ink); border: 1px solid var(--terra3); }
+  .chat-msg.assistant { align-self: flex-start; background: var(--bg2); color: var(--ink2); border: 1px solid var(--border); }
+  .chat-msg.assistant strong { color: var(--ink); font-weight: 500; }
+  .chat-msg.assistant em { color: var(--terra); font-style: italic; }
+  .chat-msg.thinking { align-self: flex-start; color: var(--ink4); font-style: italic; font-size: 13px; padding: 8px 14px; background: none; }
+  .chat-msg.error { align-self: stretch; background: var(--terra4); border: 1px solid var(--terra3); color: var(--terra2); font-size: 13px; }
+  .chat-input-row {
+    padding: 10px 12px calc(10px + var(--safe-bottom));
+    border-top: 1px solid var(--border); background: var(--bg);
+    display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 0;
+  }
+  .chat-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 0;
+    padding: 10px 12px; color: var(--ink); font-family: var(--font-body);
+    font-size: 15px; resize: none; min-height: 42px; max-height: 120px; outline: none; font-weight: 300;
+  }
+  .chat-input:focus { border-color: var(--terra3); }
+  .chat-input::placeholder { color: var(--ink5); }
+  .chat-send {
+    background: var(--terra); border: 1px solid var(--terra); color: var(--bg);
+    border-radius: 0; padding: 0 16px; height: 42px; cursor: pointer;
+    font-weight: 500; font-family: var(--font-body); font-size: 13px;
+  }
+  .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Settings ── */
+  .settings-row {
+    padding: 16px 20px; background: var(--bg); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .settings-row-body { flex: 1; }
+  .settings-row-title { font-size: 15px; color: var(--ink); margin-bottom: 3px; font-weight: 400; }
+  .settings-row-sub { font-size: 13px; color: var(--ink3); line-height: 1.5; font-weight: 300; }
+  .settings-status {
+    font-size: 9px; padding: 4px 10px; flex-shrink: 0;
+    text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; border-radius: 0;
+  }
+  .settings-status.on { background: rgba(42,157,143,0.08); color: var(--teal); border: 1px solid rgba(42,157,143,0.2); }
+  .settings-status.off { background: var(--bg2); color: var(--ink4); border: 1px solid var(--border2); }
+  .settings-btn-row {
+    padding: 11px 14px; background: var(--terra); border: 1px solid var(--terra);
+    color: var(--bg); border-radius: 0; font-size: 13px; cursor: pointer;
+    font-family: var(--font-body); font-weight: 500;
+  }
+  .settings-section-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.22em;
+    color: var(--ink4); padding: 20px 20px 8px; font-weight: 500;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .settings-section-label::before { content: ''; width: 16px; height: 1px; background: var(--terra); }
+  .settings-section-label::after  { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .bottom-spacer { height: 24px; }
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); padding: 10px 18px;
+    font-size: 13px; z-index: 200; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="top-bar">
+    <div class="mark">X</div>
+    <div style="flex:1">
+      <div class="title">The Architect</div>
+      <div class="subtitle">Sovereign Codex — Ray-Anthony Eddie</div>
+    </div>
+    <button class="settings-btn" onclick="switchTab('settings')" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <div class="content-area" id="content-area">
+
+    <!-- ═══ IDENTITY / HOME ═══ -->
+    <div class="screen active" id="screen-home">
+      <div class="identity-hero">
+        <div class="identity-seal"><span>8</span></div>
+        <h1>Ray-Anthony Eddie</h1>
+        <p>The Architect of Sovereign Systems<br>Life Path 8 · Aquarius Sun · Capricorn Moon · Gemini Rising · Pisces MC</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-cell" onclick="showIdentityDetail('lp8')"><div class="stat-val">8</div><div class="stat-label">Life Path</div></div>
+        <div class="stat-cell" onclick="showIdentityDetail('aquarius')"><div class="stat-val" style="font-size:14px;padding-top:4px;">AQU</div><div class="stat-label">Sun Sign</div></div>
+        <div class="stat-cell" onclick="showIdentityDetail('gemini')"><div class="stat-val" style="font-size:14px;padding-top:4px;">GEM</div><div class="stat-label">Rising</div></div>
+        <div class="stat-cell" onclick="showIdentityDetail('pisces')"><div class="stat-val" style="font-size:14px;padding-top:4px;">PIS</div><div class="stat-label">Midheaven</div></div>
+      </div>
+
+      <!-- Today's planetary current -->
+      <div class="planet-chip" id="today-planet-chip"></div>
+
+      <!-- Today's Insight (live, AI-generated) -->
+      <div class="insight-card" id="insight-card">
+        <div class="insight-eyebrow" id="insight-eyebrow">Today's reading</div>
+        <div class="insight-title" id="insight-title">Loading the current…</div>
+        <div class="insight-body insight-loading" id="insight-body">Reading the planetary current and your calendar.</div>
+        <div class="insight-events" id="insight-events" style="display:none"></div>
+        <div class="insight-actions">
+          <button class="insight-btn" onclick="refreshInsight()">↻ Refresh</button>
+          <button class="insight-btn primary" onclick="switchTab('ask')">Ask the Architect →</button>
+        </div>
+      </div>
+
+      <div class="section-label">Celestial blueprint</div>
+      <div class="card-list">
+        <div class="card gold-accent" onclick="showIdentityDetail('lp8')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><span style="font-family:var(--font-display);font-size:20px;color:var(--gold);">8</span></div><div class="card-body"><div class="card-eyebrow">Numerology</div><div class="card-title">Life Path 8 — The Architect</div><div class="card-sub">Material mastery · Karmic accounting · Infinite power</div></div></div></div>
+        <div class="card teal-accent" onclick="showIdentityDetail('aquarius')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--terra)" stroke-width="1.5"><path d="M3 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 17c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></svg></div><div class="card-body"><div class="card-eyebrow">Sun Sign</div><div class="card-title">Aquarius — Prometheus</div><div class="card-sub">Fire bearer · Civilizational vision · Institutional translation</div></div></div></div>
+        <div class="card chrome-accent" onclick="showIdentityDetail('capricorn')"><div class="card-row"><div class="card-icon" style="background:var(--chrome-pale);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--chrome)" stroke-width="1.5"><polygon points="12 2 22 20 2 20"/></svg></div><div class="card-body"><div class="card-eyebrow">Moon Sign</div><div class="card-title">Capricorn — Saturn / Ptah</div><div class="card-sub">Master builder · Delayed reward · Structural security</div></div></div></div>
+        <div class="card purple-accent" onclick="showIdentityDetail('gemini')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--terra)" stroke-width="1.5"><path d="M8 3v18M16 3v18M8 7h8M8 17h8"/></svg></div><div class="card-body"><div class="card-eyebrow">Rising Sign</div><div class="card-title">Gemini — Hermes / Thoth</div><div class="card-sub">Divine translator · Two worlds · Sacred communicator</div></div></div></div>
+        <div class="card coral-accent" onclick="showIdentityDetail('pisces')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.5"><path d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8"/><path d="M4 12c0 4.4 3.6 8 8 8"/><path d="M12 4c2.2 2 4 5 4 8s-1.8 6-4 8"/></svg></div><div class="card-body"><div class="card-eyebrow">Midheaven</div><div class="card-title">Pisces — Osiris / Neptune</div><div class="card-sub">Transcendent legacy · Mythic public life · Art as resurrection</div></div></div></div>
+      </div>
+
+      <div class="section-label">Deeper Practice</div>
+      <div class="card-list">
+        <div class="card gold-accent" onclick="showIdentityDetail('isis')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><span style="font-size:18px;">𓆃</span></div><div class="card-body"><div class="card-eyebrow">Netjer · Kemetic Tradition</div><div class="card-title">Isis — The Gatherer</div><div class="card-sub">Reassembly · Resurrection · Resilience</div></div></div></div>
+        <div class="card gold-accent" onclick="showIdentityDetail('maat42')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><span style="font-size:18px;">𓆄</span></div><div class="card-body"><div class="card-eyebrow">Kemetic Ethics</div><div class="card-title">The 42 Laws of Ma'at</div><div class="card-sub">Ethics · The feather · Judgment</div></div></div></div>
+        <div class="card chrome-accent" onclick="showIdentityDetail('heka_practice')"><div class="card-row"><div class="card-icon" style="background:var(--chrome-pale);"><span style="font-size:18px;">✍</span></div><div class="card-body"><div class="card-eyebrow">Kemetic / Hermetic Practice</div><div class="card-title">Heka — Sacred Speech</div><div class="card-sub">Naming · First sentences · Creation</div></div></div></div>
+        <div class="card teal-accent" onclick="showIdentityDetail('natal_chart')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><span style="font-size:18px;">☉</span></div><div class="card-body"><div class="card-eyebrow">Western Astrology · Integration</div><div class="card-title">The Full Natal Chart</div><div class="card-sub">Sun · Moon · Rising · Midheaven</div></div></div></div>
+        <div class="card chrome-accent" onclick="showIdentityDetail('saturn_return')"><div class="card-row"><div class="card-icon" style="background:var(--chrome-pale);"><span style="font-size:18px;">♄</span></div><div class="card-body"><div class="card-eyebrow">Astrological Timing</div><div class="card-title">Saturn Return & Cycles</div><div class="card-sub">Maturation · Institution · Timing</div></div></div></div>
+        <div class="card coral-accent" onclick="showIdentityDetail('color_cosmology')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="5" height="14" rx="1" fill="var(--white)"/><rect x="9.5" y="5" width="5" height="14" rx="1" fill="var(--coral)"/><rect x="15" y="5" width="5" height="14" rx="1" fill="var(--black)"/><rect x="4" y="5" width="16" height="14" rx="1.5" stroke="var(--white-muted)" stroke-width=".8"/></svg></div><div class="card-body"><div class="card-eyebrow">Hermetic / Kemetic Practice</div><div class="card-title">Color as Cosmology</div><div class="card-sub">White · Terracotta · Ink · Vibration</div></div></div></div>
+        <div class="card teal-accent" onclick="showIdentityDetail('vesica')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="24" height="24" viewBox="0 0 30 24" fill="none" stroke="var(--terra)" stroke-width="1.2"><circle cx="11" cy="12" r="8"/><circle cx="19" cy="12" r="8"/></svg></div><div class="card-body"><div class="card-eyebrow">Sacred Geometry</div><div class="card-title">The Vesica Piscis</div><div class="card-sub">Intersection · Sigil · Two worlds</div></div></div></div>
+        <div class="card purple-accent" onclick="showIdentityDetail('weekly_power')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><span style="font-size:18px;">☿</span></div><div class="card-body"><div class="card-eyebrow">Practice · Timing</div><div class="card-title">The Planetary Week</div><div class="card-sub">Planets · Orishas · Weekdays</div></div></div></div>
+      </div>
+
+      <div class="section-label">Divine allies</div>
+      <div class="card-list">
+        <div class="card gold-accent" onclick="showIdentityDetail('ogun')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><span style="font-size:18px;">⚒</span></div><div class="card-body"><div class="card-eyebrow">Orisha · Yoruba</div><div class="card-title">Ogún — Iron & New Roads</div><div class="card-sub">Path-clearing · New ventures · 8th · Tuesdays</div></div></div></div>
+        <div class="card gold-accent" onclick="showIdentityDetail('shango')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><span style="font-size:18px;">⚡</span></div><div class="card-body"><div class="card-eyebrow">Orisha · Yoruba</div><div class="card-title">Shango — Thunder & Authority</div><div class="card-sub">Rightful power · Visibility · 17th · Sundays</div></div></div></div>
+        <div class="card gold-accent" onclick="showIdentityDetail('oshun')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><span style="font-size:18px;">✦</span></div><div class="card-body"><div class="card-eyebrow">Orisha · Yoruba</div><div class="card-title">Oshun — Gold & Art</div><div class="card-sub">Beauty · Magnetism · 26th · Fridays</div></div></div></div>
+        <div class="card chrome-accent" onclick="showIdentityDetail('thoth')"><div class="card-row"><div class="card-icon" style="background:var(--chrome-pale);"><span style="font-size:18px;">𓅨</span></div><div class="card-body"><div class="card-eyebrow">Netjer · Kemetic</div><div class="card-title">Thoth — Keeper of Records</div><div class="card-sub">Sacred writing · Cosmic law · Wednesdays</div></div></div></div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══ RITUAL ═══ -->
+    <div class="screen" id="screen-ritual">
+      <div class="screen-header">
+        <h1>Morning Temple</h1>
+        <p>Seven stations · Kemetic, Yoruba, Hermetic, and numerological foundations</p>
+      </div>
+      <div class="ritual-progress" id="ritual-progress"></div>
+      <div id="ritual-card-wrap"></div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══ CALENDAR ═══ -->
+    <div class="screen" id="screen-calendar">
+      <div class="cal-header">
+        <button class="cal-nav-btn" onclick="calChange(-1)">‹</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button class="cal-nav-btn" onclick="calChange(1)">›</button>
+      </div>
+      <div class="cal-grid-wrap">
+        <div class="cal-dow" id="cal-dow"></div>
+        <div class="cal-days" id="cal-days"></div>
+      </div>
+      <div class="cal-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold);border-radius:3px;"></div>8th — Ogún</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--teal);border-radius:3px;"></div>17th — Shango</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple);border-radius:3px;"></div>26th — Oshun</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--ink4);"></div>August</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--chrome);border-radius:50%;"></div>Calendar event</div>
+      </div>
+      <div class="day-detail-panel" id="day-detail-panel">
+        <div class="day-detail-title" style="color:var(--white-muted);">Select a day</div>
+        <div class="day-detail-body" style="margin-top:6px;">Tap any date to see its planetary current, Orisha intelligence, ritual protocol, and Google Calendar events.</div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══ ASK ═══ -->
+    <div class="screen" id="screen-ask">
+      <div class="chat-wrap">
+        <div class="chat-intro">
+          <h1>Ask the Architect</h1>
+          <p>Every answer is filtered through your codex — Life Path 8, your chart, the Orishas, and Xqsitor's strategy.</p>
+        </div>
+        <div class="chat-quick">
+          <button class="chat-quick-btn" onclick="askQuick('What should I focus on today?')">Focus today</button>
+          <button class="chat-quick-btn" onclick="askQuick('Is this a good day for a pitch?')">Pitch timing</button>
+          <button class="chat-quick-btn" onclick="askQuick('Run the Pillar Diagnostic on a current decision')">Pillar check</button>
+          <button class="chat-quick-btn" onclick="askQuick('Which working tool am I neglecting right now?')">Working tools</button>
+          <button class="chat-quick-btn" onclick="askQuick('What does this week look like for me?')">Week ahead</button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask anything…"></textarea>
+          <button class="chat-send" id="chat-send" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GEOMETRY ═══ -->
+    <div class="screen" id="screen-geometry">
+      <div class="screen-header">
+        <h1>Sacred Codex</h1>
+        <p>Rosicrucian, Masonic, and Kemetic spatial intelligence — geometry, lodge, and divine proportion</p>
+      </div>
+      <div class="card-list">
+        <div class="card teal-accent" onclick="showGeoDetail('vesica')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="24" height="24" viewBox="0 0 30 24" fill="none" stroke="var(--terra)" stroke-width="1.2"><circle cx="11" cy="12" r="8"/><circle cx="19" cy="12" r="8"/></svg></div><div class="card-body"><div class="card-eyebrow">Your personal form</div><div class="card-title">Vesica Piscis — The Threshold</div><div class="card-sub">Pisces Midheaven · Two worlds meeting</div></div></div></div>
+        <div class="card purple-accent" onclick="showGeoDetail('spiral')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--terra)" stroke-width="1.2"><path d="M12 12 C12 8 16 6 18 8 C20 10 18 14 14 14 C10 14 7 11 8 7 C9 3 14 2 18 4"/></svg></div><div class="card-body"><div class="card-eyebrow">Fibonacci / Phi</div><div class="card-title">The Golden Spiral</div><div class="card-sub">Life Path 8 · Growth in proportion</div></div></div></div>
+        <div class="card coral-accent" onclick="showGeoDetail('lodge')"><div class="card-row"><div class="card-icon" style="background:var(--bg2);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="1.2"><polygon points="12 3 22 21 2 21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="2" y1="14" x2="22" y2="14"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic / Kemetic</div><div class="card-title">The Lodge as Portable Cosmos</div><div class="card-sub">Every Xqsitor space is consecrated</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('hermetic')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><ellipse cx="12" cy="12" rx="4" ry="9"/></svg></div><div class="card-body"><div class="card-eyebrow">Hermetic / Rosicrucian</div><div class="card-title">Seven Hermetic Laws</div><div class="card-sub">Living business philosophy</div></div></div></div>
+        <div class="section-label">The Builder's Lodge</div>
+        <div class="card gold-accent" onclick="showGeoDetail('jachin_boaz')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><rect x="4" y="3" width="3" height="18"/><rect x="17" y="3" width="3" height="18"/><line x1="3" y1="3" x2="9" y2="3"/><line x1="15" y1="3" x2="21" y2="3"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · First Degree</div><div class="card-title">Jachin &amp; Boaz — The Pillar Diagnostic</div><div class="card-sub">Establishment · Strength · Foundation</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('three_degrees')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><polygon points="12 3 2 21 22 21"/><line x1="7" y1="14" x2="17" y2="14"/><line x1="5" y1="18" x2="19" y2="18"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · Progression</div><div class="card-title">The Three Degrees</div><div class="card-sub">Apprentice · Fellow Craft · Master</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('working_tools')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><line x1="5" y1="19" x2="19" y2="5"/><line x1="5" y1="5" x2="5" y2="19"/><line x1="5" y1="5" x2="19" y2="5"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · All Degrees</div><div class="card-title">The Working Tools</div><div class="card-sub">Six instruments of daily self-audit</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('rough_ashlar')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><path d="M12 3 L21 8 L21 16 L12 21 L3 16 L3 8 Z"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · First Degree</div><div class="card-title">Rough &amp; Perfect Ashlar</div><div class="card-sub">The stone and the sculptor are one</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('checkered_floor')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="0.8"><rect x="4" y="8" width="4" height="4" fill="var(--terra)" opacity="0.25"/><rect x="8" y="8" width="4" height="4" fill="none" stroke="var(--gold)" stroke-width="0.8"/><rect x="12" y="8" width="4" height="4" fill="var(--terra)" opacity="0.25"/><rect x="4" y="12" width="4" height="4" fill="none" stroke="var(--gold)" stroke-width="0.8"/><rect x="8" y="12" width="4" height="4" fill="var(--terra)" opacity="0.25"/><rect x="12" y="12" width="4" height="4" fill="none" stroke="var(--gold)" stroke-width="0.8"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · First Degree</div><div class="card-title">The Checkered Floor</div><div class="card-sub">Walking the mosaic of duality</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('all_seeing_eye')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><polygon points="12 4 2 20 22 20"/><ellipse cx="12" cy="15" rx="5" ry="3"/><circle cx="12" cy="15" r="1.5" fill="var(--terra)" opacity="0.4"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · Third Degree</div><div class="card-title">The All-Seeing Eye</div><div class="card-sub">Awareness above the pyramid</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('cable_tow')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><circle cx="12" cy="12" r="8" stroke-dasharray="3 2"/><circle cx="12" cy="12" r="1.5" fill="var(--terra)" opacity="0.4"/><line x1="12" y1="12" x2="20" y2="12"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · First Degree</div><div class="card-title">The Cable Tow</div><div class="card-sub">The radius of your obligation</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('hiram')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><rect x="7" y="3" width="10" height="18"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="9" y1="12" x2="15" y2="12"/></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · Third Degree</div><div class="card-title">Hiram's Legend</div><div class="card-sub">The master who would not betray the craft</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('letter_g')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><line x1="12" y1="3" x2="3" y2="21"/><line x1="12" y1="3" x2="21" y2="21"/><line x1="6" y1="14" x2="18" y2="14"/><text x="12" y="20" text-anchor="middle" fill="var(--terra)" font-family="Georgia,serif" font-size="7" font-style="italic" stroke="none" opacity="0.6">G</text></svg></div><div class="card-body"><div class="card-eyebrow">Masonic · Second Degree</div><div class="card-title">The Letter G</div><div class="card-sub">Geometry · God · Gnosis</div></div></div></div>
+        <div class="section-label">Daily Lodge Protocol</div>
+        <div class="card gold-accent" onclick="showGeoDetail('opening')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><rect x="4" y="4" width="16" height="16"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="12" cy="12" r="2.5" fill="var(--terra)" opacity="0.3"/></svg></div><div class="card-body"><div class="card-eyebrow">Station Zero · Opening</div><div class="card-title">Opening Lodge</div><div class="card-sub">Before the first stone — consecrating the day</div></div></div></div>
+        <div class="card gold-accent" onclick="showGeoDetail('closing')"><div class="card-row"><div class="card-icon" style="background:var(--gold-pale);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.2"><rect x="4" y="4" width="16" height="16"/><line x1="8" y1="12" x2="16" y2="12"/><circle cx="12" cy="12" r="2" fill="var(--terra)" opacity="0.2"/></svg></div><div class="card-body"><div class="card-eyebrow">Station VIII · Closing</div><div class="card-title">Closing Lodge</div><div class="card-sub">Suspending the work — permission to rest</div></div></div></div>
+        <div class="section-label">The Divine Proportion</div>
+        <div class="card gold-accent hero-card" onclick="showGeoDetail('goldenratio')"><div class="card-row"><div class="card-icon" style="background:var(--terra3);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--terra2)" stroke-width="1.2"><rect x="2" y="6" width="15" height="15"/><rect x="17" y="6" width="5" height="9"/><rect x="17" y="15" width="3" height="6"/><path d="M17 21 Q2 21 2 6" fill="none" stroke="var(--terra2)" stroke-width="0.7" opacity="0.5"/></svg></div><div class="card-body"><div class="card-eyebrow">φ = 1.618 · Sacred Geometry</div><div class="card-title">The Divine Proportion</div><div class="card-sub">The Grand Architect's signature in all created things</div></div></div></div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="screen" id="screen-settings">
+      <div class="screen-header">
+        <h1>Settings</h1>
+        <p>Connect Google Calendar, enable notifications, manage your codex.</p>
+      </div>
+
+      <div class="settings-section-label">Google Calendar</div>
+      <div class="settings-row">
+        <div class="settings-row-body">
+          <div class="settings-row-title">Calendar sync</div>
+          <div class="settings-row-sub" id="gcal-status-sub">Two-way: read your events into the app, push power dates into Google.</div>
+        </div>
+        <span class="settings-status off" id="gcal-status">Off</span>
+      </div>
+      <div style="padding: 0 16px 12px;">
+        <button class="settings-btn-row" id="gcal-connect-btn" style="width:100%" onclick="connectGoogle()">Connect Google Calendar</button>
+      </div>
+      <div style="padding: 0 16px 12px;" id="gcal-push-row" hidden>
+        <button class="settings-btn-row" style="width:100%;background:var(--black-4);border-color:var(--black-5);color:var(--white-dim)" onclick="pushPowerDates()">Push 12 months of power dates to Google</button>
+      </div>
+
+      <div class="settings-section-label">Notifications</div>
+      <div class="settings-row">
+        <div class="settings-row-body">
+          <div class="settings-row-title">Push notifications</div>
+          <div class="settings-row-sub">4:44 AM ritual reminder · power date eves · event-aware insights · solar return countdown.</div>
+        </div>
+        <span class="settings-status off" id="push-status">Off</span>
+      </div>
+      <div style="padding: 0 16px 12px;">
+        <button class="settings-btn-row" id="push-enable-btn" style="width:100%" onclick="enablePush()">Enable notifications</button>
+      </div>
+      <div id="ios-pwa-warning" style="padding: 0 16px 12px;" hidden>
+        <div class="settings-row" style="margin: 0; background: var(--terra4); border-color: var(--terra3);">
+          <div class="settings-row-body">
+            <div class="settings-row-title" style="color:var(--coral);">iOS: install to home screen first</div>
+            <div class="settings-row-sub">Web push on iPhone requires the app to be added to your home screen. In Safari: Share → Add to Home Screen, then re-open and enable.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section-label">About</div>
+      <div class="settings-row">
+        <div class="settings-row-body">
+          <div class="settings-row-title">The Architect — v0.1</div>
+          <div class="settings-row-sub">Sovereign Codex for Ray-Anthony Eddie / Xqsitor.</div>
+        </div>
+      </div>
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <!-- ═══ DETAIL OVERLAY ═══ -->
+    <div class="detail-view" id="detail-view">
+      <button class="detail-back" onclick="closeDetail()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back
+      </button>
+      <div class="detail-content" id="detail-content"></div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="tab-home" onclick="switchTab('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
+      Identity
+    </button>
+    <button class="nav-tab" id="tab-ritual" onclick="switchTab('ritual')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      Temple
+    </button>
+    <button class="nav-tab" id="tab-calendar" onclick="switchTab('calendar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Calendar
+    </button>
+    <button class="nav-tab" id="tab-ask" onclick="switchTab('ask')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+      Ask
+    </button>
+    <button class="nav-tab" id="tab-geometry" onclick="switchTab('geometry')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 22 20 2 20"/><circle cx="12" cy="13" r="3"/></svg>
+      Codex
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/data.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/insight.js"></script>
+<script src="/js/calendar-sync.js"></script>
+<script src="/js/notifications.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    });
+  }
+</script>
+</body>
+</html>
