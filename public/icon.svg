@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="The Architect">
+  <rect width="512" height="512" fill="#000000"/>
+  <path d="M96 384 256 96l160 288h-54L256 188 150 384z" fill="#ffffff"/>
+  <path d="M164 384h184v32H164z" fill="#3e2300"/>
+  <path d="M256 128v256" stroke="#ffffff" stroke-width="14" stroke-linecap="square"/>
+</svg>

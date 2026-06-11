@@ -1,6 +1,16 @@
 // Service worker — handles push notifications + offline shell.
-const CACHE = 'architect-v1';
-const SHELL = ['/', '/index.html', '/manifest.json'];
+const CACHE = 'architect-editorial-v1';
+const SHELL = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/app.css',
+  '/app.js',
+  '/icon.svg',
+  '/assets/architect-ee72-hero.jpg',
+  '/assets/architect-ee72-table.jpg',
+  '/assets/architect-ee72-proportion.jpg',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => null));
@@ -8,7 +18,12 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(self.clients.claim());
+  e.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener('fetch', (e) => {
@@ -25,8 +40,8 @@ self.addEventListener('push', (e) => {
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon: '/icon.svg',
+      badge: '/icon.svg',
       vibrate: [80, 40, 80],
       data: { url: data.url },
       tag: data.tag || 'architect',
