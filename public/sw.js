@@ -1,5 +1,5 @@
-// Service worker — handles push notifications + offline shell.
-const CACHE = 'architect-editorial-v1';
+// Service worker: push notifications, offline fallback, and fresh app releases.
+const CACHE = 'architect-editorial-v2';
 const SHELL = [
   '/',
   '/index.html',
@@ -26,11 +26,35 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+self.addEventListener('message', (e) => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).pathname.startsWith('/api/')) return;
+
+  if (req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put('/index.html', copy));
+          return res;
+        })
+        .catch(() => caches.match('/index.html')),
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req).catch(() => caches.match('/index.html')))
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((cache) => cache.put(req, copy));
+        return res;
+      })
+      .catch(() => caches.match(req)),
   );
 });
 
